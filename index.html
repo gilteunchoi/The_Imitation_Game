@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style type="text/css">
+        .chartBox {
+            height: 100%;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="chartBox">
+        <canvas id="myChart"></canvas>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/luxon@2.4.0/build/global/luxon.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.1.0/dist/chartjs-adapter-luxon.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-streaming@2.0.0/dist/chartjs-plugin-streaming.min.js"></script>
+
+    <script>
+    // https://www.youtube.com/playlist?list=PLc1g3vwxhg1WEPb_qmB18lhQJOxJrCyUh
+
+    // setup block
+    const data = {
+        //labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
+        datasets: [{
+            label: 'channel 1',
+            data: [],
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            borderColor: 'rgba(75, 192, 192, 1)',
+            borderWidth: 1
+        },{
+            label: 'channel 2',
+            data: [],
+            backgroundColor: 'rgba(0, 0, 192, 0.2)',
+            borderColor: 'rgba(0, 0, 192, 1)',
+            borderWidth: 1
+        },{
+            label: 'channel 3',
+            data: [],
+            backgroundColor: 'rgba(78, 25, 192, 0.2)',
+            borderColor: 'rgba(78, 25, 192, 1)',
+            borderWidth: 1
+        },{
+            label: 'channel 4',
+            data: [],
+            backgroundColor: 'rgba(25, 150, 192, 0.2)',
+            borderColor: 'rgba(25, 150, 192, 1)',
+            borderWidth: 1
+        },{
+            label: 'channel 5',
+            data: [],
+            backgroundColor: 'rgba(150, 100, 192, 0.2)',
+            borderColor: 'rgba(150, 100, 192, 1)',
+            borderWidth: 1
+        }]
+    };
+
+    const dataPerSec = 8;
+    var dataTickChecker = [0, 0, 0, 0, 0];
+    var randomBoolean = [true, true, true, true, true];
+
+    // config block
+    const config = {
+        type: 'line',
+        data,
+        options: {
+            interaction: {
+                intersect: false
+            },
+            indexAxis: 'y',
+            scales: {
+                y: {
+                    type: 'realtime',
+                    realtime: {
+                        duration: 30000,
+                        refresh: 1000 / dataPerSec,
+                        delay: 1000,
+                        onRefresh: chart => {
+                            chart.data.datasets.forEach((dataset, i)=> {
+                                var data = 0;
+                                var channel = i + 1;
+                                var bias = 0;
+                                var noise = Math.random()*0.0625 - 0.03125;
+                                var info = 0;
+
+                                dataTickChecker[i]++;
+                                if(dataTickChecker[i] >= dataPerSec){
+                                    randomBoolean[i] = Math.random() < 0.25;
+                                    dataTickChecker[i] = 0;
+                                }
+
+                                if(dataTickChecker[i] % 2){
+                                    bias = -1;
+                                } else {
+                                    bias = 1;
+                                }
+
+                                if(randomBoolean[i]){
+                                    info = 0.125;
+                                }else{
+                                    info = 0;
+                                }
+
+                                data = channel + bias * info + noise;
+
+                                dataset.data.push({
+                                    y: Date.now(),
+                                    x: data
+                                });
+                            });
+                        }
+                    }  
+                },
+                x: {
+                    beginAtZero: true,
+                    min: 0,
+                    max: 10,
+                    ticks:{
+                        stepSize: 1
+                    },
+                    type: 'linear'
+                }
+            }
+        }
+    };
+
+    // render init block
+    const myChart = new Chart(
+        document.getElementById('myChart'),
+        config 
+    );
+
+    </script>
+
+</body>
+</html>
